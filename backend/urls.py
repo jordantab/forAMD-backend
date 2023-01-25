@@ -18,7 +18,7 @@ from django.urls import include, path
 from events import views
 
 urlpatterns = [
-    # path('', views.verifyLogin),
+    path('', views.Home),
     path('admin/', admin.site.urls),
     path('verifyLogin/', views.verifyLogin),
     path('fetchAlbum/', views.getAlbum),

@@ -23,6 +23,10 @@ SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
 
 client = pymongo.MongoClient('mongodb+srv://jordantab:Tarkan12@cluster0.02rmati.mongodb.net/?retryWrites=true&w=majority')
 
+def Home(request):
+    response = 'hey'
+    return HttpResponse(response)
+
 @csrf_exempt
 def verifyLogin(request):
     # process user input
