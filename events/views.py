@@ -116,7 +116,7 @@ def getAlbum(request):
     except HttpError as err:
         print(err)
 
-    return HttpResponse(response['productUrl'])
+    return HttpResponse(response)
 
 @csrf_exempt
 def verifyPuzzle(request):
