@@ -111,6 +111,7 @@ def getAlbum(request):
     try:
         service = build('photoslibrary', 'v1', credentials=creds, static_discovery=False)
         response = service.albums().get(albumId = album_id).execute()
+        print(response)
         
     except HttpError as err:
         print(err)
