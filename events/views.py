@@ -1,3 +1,4 @@
+import pandas as pd
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -15,12 +16,13 @@ import pymongo
 import json
 import os
 
+
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
 
 
 # Create your views here.
-
+photo_url = ""
 client = pymongo.MongoClient('mongodb+srv://jordantab:Tarkan12@cluster0.02rmati.mongodb.net/?retryWrites=true&w=majority')
 
 def Home(request):
@@ -60,6 +62,7 @@ def verifyLogin(request):
 
 @csrf_exempt
 def getAlbum(request):
+    
     input = request.read().decode("utf-8")
     # convert the json string to a dictionary
     input = json.loads(input)
@@ -110,13 +113,53 @@ def getAlbum(request):
 
     try:
         service = build('photoslibrary', 'v1', credentials=creds, static_discovery=False)
-        response = service.albums().get(albumId = album_id).execute()
-        print(response)
+        
+        # specify the album id of the requested album 
+        request_body = {
+            'albumId': album_id,
+            'pageSize': 25
+        }
+
+        # get the first 25 files in the album
+        response = service.mediaItems().search(body = request_body).execute()
+        lst_medias = response.get('mediaItems')
+        nextPageToken = response.get('nextPageToken')
+
+        # get the rest of the files
+        while nextPageToken:
+            request_body['pageToken'] = nextPageToken
+
+            response = service.mediaItems().search(body = request_body).execute()
+            lst_medias.extend(response.get('mediaItems'))
+            nextPageToken = response.get('nextPageToken')
+
+        df_files = pd.DataFrame(lst_medias)
+        
+        #extract the mediaItemIds of the files
+        mediaItemIds = df_files['id'].tolist()
+
+        photos = service.mediaItems().batchGet(mediaItemIds=mediaItemIds).execute()
+        photos = photos.get('mediaItemResults')
+        df_photos = pd.DataFrame(photos)
+        df_photos = df_photos['mediaItem'].apply(pd.Series)
+        base_urls = df_photos['baseUrl'].tolist()
+        response = HttpResponse(json.dumps(base_urls))
+        # response = service.albums().get(albumId = album_id).execute()
+        # cover_photo_id = response['coverPhotoMediaItemId']
+        # photo = service.mediaItems().batchGet(mediaItemIds=[cover_photo_id]).execute()
+        # print(photo)
+        # photo_url = photo['baseUrl']
+        # response = HttpResponse(photo_url)
+        # response["Access-Control-Allow-Origin"] = "*"
+        # response["Access-Control-Allow-Methods"] = "POST"
+        # response["Access-Control-Allow-Headers"] = "Content-Type"
+        # response["Access-Control-Allow-Credentials"] = "true"
+        # response["Cross-Origin-Resource-Policy"] = "cross-origin"
         
     except HttpError as err:
         print(err)
 
-    return HttpResponse(response['MediaItemId'])
+    return response
 
 @csrf_exempt
 def verifyPuzzle(request):
@@ -145,3 +188,13 @@ def verifyPuzzle(request):
             response = True
 
     return HttpResponse(response)
+
+@csrf_exempt
+def temp(request):
+    print(1)
+    foramd_db = client['forAMD']
+    collection = foramd_db['Nextdoor']
+    solution = collection.find({},{"_id":0})
+    for temp in solution:
+        solution = temp['url']
+    return HttpResponse(solution)

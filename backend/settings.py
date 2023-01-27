@@ -30,6 +30,7 @@ SECRET_KEY = "django-insecure-_s^1g459)1o4ogoj2^ol33ak=bj((ueda8&mpp7x+e44ty971o
 DEBUG = False
 
 ALLOWED_HOSTS = ['for-amd.herokuapp.com']
+# ALLOWED_HOSTS = []
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
@@ -58,13 +59,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     
 ]
+CORS_EXPOSE_HEADERS=[
+    "Access-Control-Allow-Origin"
+]
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000'
+    '*'
+
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://foramd.com'
 ]
 
 ROOT_URLCONF = "backend.urls"

@@ -22,5 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('verifyLogin/', views.verifyLogin),
     path('fetchAlbum/', views.getAlbum),
-    path('verifyPuzzle/', views.verifyPuzzle)
+    path('verifyPuzzle/', views.verifyPuzzle),
 ]
