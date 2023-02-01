@@ -32,7 +32,6 @@ def Home(request):
 @csrf_exempt
 def verifyLogin(request):
     # process user input
-
     data = request.read().decode("utf-8")
 
     # convert the json string to a dictionary
@@ -117,7 +116,12 @@ def getAlbum(request):
         # specify the album id of the requested album 
         request_body = {
             'albumId': album_id,
-            'pageSize': 25
+            'pageSize': 25,
+            # 'filters': {
+            #     'mediaTypeFilter': {
+            #         'mediaTypes': ['VIDEO']}
+            # }
+            
         }
 
         # get the first 25 files in the album
@@ -134,16 +138,41 @@ def getAlbum(request):
             nextPageToken = response.get('nextPageToken')
 
         df_files = pd.DataFrame(lst_medias)
-        
-        #extract the mediaItemIds of the files
-        mediaItemIds = df_files['id'].tolist()
+        print(df_files['baseUrl'])
 
-        photos = service.mediaItems().batchGet(mediaItemIds=mediaItemIds).execute()
+        # separate photos and videos into different dataframes
+        df_photos = df_files[df_files['mimeType'].str.contains('image')]
+        # extract the mediaItemIds of the photos
+        mediaItemIds_photos = df_photos['id'].tolist()
+
+
+        df_videos = df_files[df_files['mimeType'].str.contains('video')]
+        # extract the mediaItemIds of the videos
+        mediaItemIds_videos = df_videos['id'].tolist()
+
+        # get the baseUrls of the photos
+        photos = service.mediaItems().batchGet(mediaItemIds=mediaItemIds_photos).execute()
         photos = photos.get('mediaItemResults')
         df_photos = pd.DataFrame(photos)
         df_photos = df_photos['mediaItem'].apply(pd.Series)
-        base_urls = df_photos['baseUrl'].tolist()
-        response = HttpResponse(json.dumps(base_urls))
+        base_urls_photos = df_photos['baseUrl'].tolist()
+        # photos_json = json.dumps(base_urls_photos)
+
+        data = {'photos':base_urls_photos}
+
+        # get the baseUrls of the videos if they exist
+        if len(mediaItemIds_videos) > 0:
+            videos = service.mediaItems().batchGet(mediaItemIds=mediaItemIds_videos).execute()
+            videos = videos.get('mediaItemResults')
+            df_videos = pd.DataFrame(videos)
+            df_videos = df_videos['mediaItem'].apply(pd.Series)
+            # print(df_videos['mediaMetadata'])
+            fd = df_videos['mediaMetadata'].apply(pd.Series)
+            # print(fd)
+            base_urls_videos = df_videos['baseUrl'].tolist()
+            # print(base_urls_videos)
+            data['videos'] = base_urls_videos
+        response = HttpResponse(json.dumps(data))
         # response = service.albums().get(albumId = album_id).execute()
         # cover_photo_id = response['coverPhotoMediaItemId']
         # photo = service.mediaItems().batchGet(mediaItemIds=[cover_photo_id]).execute()
