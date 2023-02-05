@@ -138,7 +138,6 @@ def getAlbum(request):
             nextPageToken = response.get('nextPageToken')
 
         df_files = pd.DataFrame(lst_medias)
-        print(df_files['baseUrl'])
 
         # separate photos and videos into different dataframes
         df_photos = df_files[df_files['mimeType'].str.contains('image')]
