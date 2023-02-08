@@ -61,13 +61,10 @@ def verifyLogin(request):
 
 @csrf_exempt
 def getAlbum(request):
-    
-    input = request.read().decode("utf-8")
     # convert the json string to a dictionary
-    input = json.loads(input)
-
+    input = request.body.decode()
     # extract the value of the "username" key
-    album_name = input.get("label")
+    album_name = input
 
     ids = {
         'Newport': 'APtRtIHbM5GXXGxHhD3WbESJpfkxJw8NA1qIZRrfwuPJndB5iq6_L6_ROlNozjxgd1HXXYreeJvV',
@@ -172,21 +169,11 @@ def getAlbum(request):
             # print(base_urls_videos)
             data['videos'] = base_urls_videos
         response = HttpResponse(json.dumps(data))
-        # response = service.albums().get(albumId = album_id).execute()
-        # cover_photo_id = response['coverPhotoMediaItemId']
-        # photo = service.mediaItems().batchGet(mediaItemIds=[cover_photo_id]).execute()
-        # print(photo)
-        # photo_url = photo['baseUrl']
-        # response = HttpResponse(photo_url)
-        # response["Access-Control-Allow-Origin"] = "*"
-        # response["Access-Control-Allow-Methods"] = "POST"
-        # response["Access-Control-Allow-Headers"] = "Content-Type"
-        # response["Access-Control-Allow-Credentials"] = "true"
-        # response["Cross-Origin-Resource-Policy"] = "cross-origin"
         
     except HttpError as err:
         print(err)
 
+    print(data)
     return response
 
 @csrf_exempt
@@ -220,6 +207,7 @@ def verifyPuzzle(request):
 @csrf_exempt
 def temp(request):
     print(1)
+    print(request)
     foramd_db = client['forAMD']
     collection = foramd_db['Nextdoor']
     solution = collection.find({},{"_id":0})
